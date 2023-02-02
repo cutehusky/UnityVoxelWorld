@@ -2,32 +2,78 @@ using System.Collections.Generic;
 using UnityEngine;
 using VoxelWorld.Block;
 using VoxelWorld.Texture;
+using VoxelWorld.World.Chuck;
 
 namespace VoxelWorld.World.MeshRender
 {
-    [RequireComponent(typeof(MeshFilter))]
-    [RequireComponent(typeof(MeshRenderer))]
-    [Utilities.ExecutionOrder.ExecuteAfter(typeof(BlockTextureBuilder))]
-    public class ChuckMeshRender : MonoBehaviour
+    public class ChuckMeshRender
     {
-        [HideInInspector] public MeshRenderer meshRenderer;
-        [HideInInspector] public MeshFilter meshFilter;
-        public BlockTextureBuilder textureBuilder;
+        private GameObject chuck;
+        private MeshRenderer meshRenderer;
+        private MeshFilter meshFilter;
+        private BlockTextureBuilder textureBuilder;
 
         private int vertexIndex;
-
         private List<Vector3> verts;
         private List<int>[] tris;
         private List<Vector2> uvs;
 
-        public BlockData[,,] ChuckData = new BlockData[VoxelData.ChuckWidth, VoxelData.ChuckHeight, VoxelData.ChuckWidth];
-
-        private void Awake()
+        public void UpdateChuck(ChuckData chuckData)
         {
-            meshFilter = GetComponent<MeshFilter>();
-            meshRenderer = GetComponent<MeshRenderer>();
+            InitialMeshData();
+            AddMeshData(chuckData.blockData);
+            BuildMesh();
+            ResetMeshData();
+        }
+
+        public void UpdateChuck(BlockData[,,] blockData)
+        {
+            InitialMeshData();
+            AddMeshData(blockData);
+            BuildMesh();
+            ResetMeshData();
+        }
+
+        ~ChuckMeshRender()
+        {
+            Object.Destroy(chuck);
+        }
+
+        public Vector2 position { get => new Vector2(chuck.transform.position.x, chuck.transform.position.z); }
+
+        public bool isActive { get => chuck.activeSelf; set => chuck.SetActive(value); }
+
+        public ChuckMeshRender(ChuckData chuckData, BlockTextureBuilder _textureBuilder, Transform parent)
+        {
+            chuck = new GameObject();
+            chuck.name = "Chuck_" + chuckData.position.x + "_" + chuckData.position.y;
+            chuck.transform.parent = parent;
+            chuck.transform.position = new Vector3(chuckData.position.x * VoxelData.ChuckWidth,
+                0, chuckData.position.y * VoxelData.ChuckWidth);
+            textureBuilder = _textureBuilder;
+            meshFilter = chuck.AddComponent<MeshFilter>();
+            meshRenderer = chuck.AddComponent<MeshRenderer>();
             meshRenderer.materials = textureBuilder.blockMaterial.ToArray();
             InitialMeshData();
+            AddMeshData(chuckData.blockData);
+            BuildMesh();
+            ResetMeshData();
+        }
+
+        private void AddMeshData(BlockData[,,] blockData)
+        {
+            for (int i = 0; i < VoxelData.ChuckWidth; i++)
+                for (int j = 0; j < VoxelData.ChuckWidth; i++)
+                    for (int k = 0; k < VoxelData.ChuckHeight; i++)
+                        AddPos(new Vector3(i, k, j), blockData);
+        }
+
+        private void ResetMeshData()
+        {
+            vertexIndex = 0;
+            verts = null;
+            uvs = null;
+            tris = null;
         }
 
         private void InitialMeshData()
@@ -43,47 +89,7 @@ namespace VoxelWorld.World.MeshRender
             }
         }
 
-        private void Start()
-        {
-            var block = new BlockData();
-            block.ID = 1;
-            var block2 = new BlockData();
-            block2.ID = 0;
-            for (int i = 0; i < 16; i++)
-            {
-                for (int j = 0; j < 16; j++)
-                {
-                    for (int k = 0; k < 16; k++)
-                    {
-                        ChuckData[i, k, j] = block2;
-                    }
-                }
-            }
-            for (int i = 0; i < 16; i++)
-            {
-                for (int j = 0; j < 16; j++)
-                {
-                    for (int k = 0; k < 5; k++)
-                    {
-                        ChuckData[i, k, j] = block;
-                    }
-                }
-            }
-
-            for (int i = 0; i < 16; i++)
-            {
-                for (int j = 0; j < 16; j++)
-                {
-                    for (int k = 0; k < 16; k++)
-                    {
-                        AddPos(new Vector3(i, k, j));
-                    }
-                }
-            }
-            BuildMesh();
-        }
-
-        private bool Checkface(Vector3 pos)
+        private bool Checkface(Vector3 pos, BlockData[,,] blockData)
         {
             int x = Mathf.RoundToInt(pos.x),
                 y = Mathf.RoundToInt(pos.y),
@@ -94,19 +100,19 @@ namespace VoxelWorld.World.MeshRender
                 || y < 0 || y > VoxelData.ChuckHeight - 1)
                 return false;
 
-            return ChuckData[x, y, z].ID != 0;
+            return blockData[x, y, z].ID != 0;
         }
 
-        private void AddPos(Vector3 pos)
+        private void AddPos(Vector3 pos, BlockData[,,] blockData)
         {
-            int blockID = ChuckData[Mathf.RoundToInt(pos.x),
+            int blockID = blockData[Mathf.RoundToInt(pos.x),
                  Mathf.RoundToInt(pos.y), Mathf.RoundToInt(pos.z)].ID;
             if (blockID == 0)
                 return;
 
             for (int i = 0; i < 6; i++)
             {
-                if (!Checkface(pos + VoxelData.facecheck[i]))
+                if (!Checkface(pos + VoxelData.facecheck[i], blockData))
                 {
                     var uvInfo = textureBuilder.GetBlockUVInfo(blockID, i);
                     verts.Add(VoxelData.voxelVerts[VoxelData.voxelTris[i, 0]] + pos);

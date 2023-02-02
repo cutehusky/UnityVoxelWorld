@@ -7,7 +7,6 @@ namespace VoxelWorld.World.MeshRender
         public static readonly int ChuckWidth = 16;
         public static readonly int ChuckHeight = 255;
 
-
         public static readonly Vector3[] voxelVerts = new Vector3[8] {
             new Vector3(0,0,0),
             new Vector3(1f,0,0),

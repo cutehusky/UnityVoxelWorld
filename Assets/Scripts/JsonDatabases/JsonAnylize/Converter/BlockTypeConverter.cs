@@ -1,9 +1,6 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
 using Newtonsoft.Json;
-using System;
 using Newtonsoft.Json.Linq;
+using System;
 using VoxelWorld.Block;
 
 namespace VoxelWorld.JSONDatabases.Converter
@@ -41,7 +38,7 @@ namespace VoxelWorld.JSONDatabases.Converter
 
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
-            throw new FormatException("Can't writte json");
+            throw new NotImplementedException("Can't writte json");
         }
     }
 }

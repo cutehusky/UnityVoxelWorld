@@ -1,0 +1,8 @@
+{
+    "format_version": "1.0.0",
+    "string_ID": "bedrock",
+    "name": "bedrock",
+    "id": 1,
+    "texture": "bedrock",
+    "material": "Default"
+}

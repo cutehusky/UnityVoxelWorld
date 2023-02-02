@@ -1,0 +1,8 @@
+{
+    "format_version": "1.0.0",
+    "string_ID": "dirt",
+    "name": "dirt",
+    "id": 2,
+    "texture": "dirt",
+    "material": "Default"
+}

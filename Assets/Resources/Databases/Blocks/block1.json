@@ -1,8 +1,0 @@
-{
-    "format_version": "1.0.0",
-    "string_ID": "test1",
-    "name": "test1",
-    "id": 1,
-    "texture": "block1",
-    "material": "Default"
-}

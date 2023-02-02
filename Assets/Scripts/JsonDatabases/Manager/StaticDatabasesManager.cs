@@ -1,18 +1,23 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using VoxelWorld.Block;
+using VoxelWorld.Utilities;
+using VoxelWorld.World;
+using VoxelWorld.World.Chuck;
 
 namespace VoxelWorld.JSONDatabases.Manager
 {
+    [Utilities.ExecutionOrder.ExecuteAfter(typeof(WorldManager))]
     public class StaticDatabasesManager : MonoBehaviour
     {
         public List<BlockType> BlockList;
+        public List<ChuckData> chuckDatas;
 
         private void Awake()
         {
-            BlockList = JsonReader.ReadStaticDataFromFolder<BlockType>("Databases/Blocks");
+            FileTools.CreateFolder(Application.persistentDataPath + "/ResourcePacks");
 
+            BlockList = JsonReader.ReadStaticDatasFromFolder<BlockType>("Databases/Blocks");
         }
     }
 }

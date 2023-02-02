@@ -1,0 +1,8 @@
+{
+    "format_version": "1.0.0",
+    "string_ID": "grass",
+    "name": "grass",
+    "id": 3,
+    "texture": "grass",
+    "material": "Default"
+}

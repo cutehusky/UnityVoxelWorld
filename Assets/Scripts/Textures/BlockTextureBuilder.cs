@@ -3,8 +3,8 @@ using UnityEngine;
 using VoxelWorld.Block;
 using VoxelWorld.JSONDatabases.Manager;
 
-namespace VoxelWorld.Texture {
-
+namespace VoxelWorld.Texture
+{
     public struct BlockUVInfo
     {
         public int MaterialIndex;
@@ -56,6 +56,7 @@ namespace VoxelWorld.Texture {
                 for (int k = 0; k < textures[texture.Key].Count; k++)
                 {
                     textures[texture.Key][k].Apply();
+                    textures[texture.Key][k].filterMode = FilterMode.Point;
                     Material ma;
                     if (!materialTemplates.ContainsKey(texture.Key))
                     {
