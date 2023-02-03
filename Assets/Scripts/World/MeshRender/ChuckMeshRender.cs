@@ -18,18 +18,24 @@ namespace VoxelWorld.World.MeshRender
         private List<int>[] tris;
         private List<Vector2> uvs;
 
-        public void UpdateChuck(ChuckData chuckData)
+        public void UpdateChuck(ChuckData chuckData,
+            BlockData[,,] blockData_f = null, BlockData[,,] blockData_b = null,
+            BlockData[,,] blockData_r = null, BlockData[,,] blockData_l = null)
         {
             InitialMeshData();
-            AddMeshData(chuckData.blockData);
+            AddMeshData(chuckData.blockData,
+                blockData_f, blockData_b, blockData_r, blockData_l);
             BuildMesh();
             ResetMeshData();
         }
 
-        public void UpdateChuck(BlockData[,,] blockData)
+        public void UpdateChuck(BlockData[,,] blockData,
+            BlockData[,,] blockData_f = null, BlockData[,,] blockData_b = null,
+            BlockData[,,] blockData_r = null, BlockData[,,] blockData_l = null)
         {
             InitialMeshData();
-            AddMeshData(blockData);
+            AddMeshData(blockData,
+                blockData_f, blockData_b, blockData_r, blockData_l);
             BuildMesh();
             ResetMeshData();
         }
@@ -38,7 +44,9 @@ namespace VoxelWorld.World.MeshRender
 
         public bool isActive { get => chuck.activeSelf; set => chuck.SetActive(value); }
 
-        public ChuckMeshRender(ChuckData chuckData, BlockTextureBuilder _textureBuilder, Transform parent)
+        public ChuckMeshRender(ChuckData chuckData, BlockTextureBuilder _textureBuilder, Transform parent,
+            BlockData[,,] blockData_f = null, BlockData[,,] blockData_b = null,
+            BlockData[,,] blockData_r = null, BlockData[,,] blockData_l = null)
         {
             chuck = new GameObject();
             chuck.name = "Chuck_" + chuckData.position.x + "_" + chuckData.position.y;
@@ -50,7 +58,7 @@ namespace VoxelWorld.World.MeshRender
             meshRenderer = chuck.AddComponent<MeshRenderer>();
             meshRenderer.materials = textureBuilder.blockMaterial.ToArray();
             InitialMeshData();
-            AddMeshData(chuckData.blockData);
+            AddMeshData(chuckData.blockData, blockData_f, blockData_b, blockData_r, blockData_l);
             BuildMesh();
             ResetMeshData();
         }
@@ -60,12 +68,15 @@ namespace VoxelWorld.World.MeshRender
             Object.Destroy(chuck);
         }
 
-        private void AddMeshData(BlockData[,,] blockData)
+        private void AddMeshData(BlockData[,,] blockData,
+            BlockData[,,] blockData_f, BlockData[,,] blockData_b, BlockData[,,] blockData_r,
+            BlockData[,,] blockData_l)
         {
             for (int i = 0; i < VoxelData.ChuckWidth; i++)
                 for (int j = 0; j < VoxelData.ChuckWidth; j++)
                     for (int k = 0; k < VoxelData.ChuckHeight; k++)
-                        AddPos(new Vector3(i, k, j), blockData);
+                        AddPos(new Vector3(i, k, j), blockData,
+                            blockData_f, blockData_b,blockData_r, blockData_l);
         }
 
         private void ResetMeshData()
@@ -89,7 +100,9 @@ namespace VoxelWorld.World.MeshRender
             }
         }
 
-        private bool Checkface(Vector3 pos, BlockData[,,] blockData)
+        private bool Checkface(Vector3 pos, BlockData[,,] blockData, 
+            BlockData[,,] blockData_f,BlockData[,,] blockData_b,BlockData[,,] blockData_r, 
+            BlockData[,,] blockData_l)
         {
             int x = Mathf.RoundToInt(pos.x),
                 y = Mathf.RoundToInt(pos.y),
@@ -98,15 +111,50 @@ namespace VoxelWorld.World.MeshRender
             if (y < 0)
                 return true;
 
-            if (x < 0 || x > VoxelData.ChuckWidth - 1
-                || z < 0 || z > VoxelData.ChuckWidth - 1
-                || y > VoxelData.ChuckHeight - 1)
+            if (y > VoxelData.ChuckHeight - 1)
                 return false;
 
-            return blockData[x, y, z] != null;
+            if (x < 0)
+            {
+                if (blockData_l == null)
+                    return false;
+                return blockData_l[VoxelData.ChuckWidth - 1, y, z]?.ID != 0 &&
+                    blockData_l[VoxelData.ChuckWidth - 1, y, z] != null;
+            }
+                
+
+            if (x > VoxelData.ChuckWidth - 1)
+            {
+                if (blockData_r == null)
+                    return false;
+                return blockData_r[0, y, z] != null &&
+                    blockData_r[0, y, z]?.ID != 0;
+            }
+                
+
+            if (z < 0)
+            {
+                if (blockData_b == null)
+                    return false;
+                return blockData_b[x, y, VoxelData.ChuckWidth - 1] != null &&
+                    blockData_b[x, y, VoxelData.ChuckWidth - 1]?.ID != 0;
+            }
+  
+
+            if (z > VoxelData.ChuckWidth - 1)
+            {
+                if (blockData_f == null)
+                    return false;
+                return blockData_f[x, y, 0] != null &&
+                    blockData_f[x, y, 0]?.ID != 0;
+            }
+                
+            return blockData[x, y, z] != null && blockData[x, y, z]?.ID != 0;
         }
 
-        private void AddPos(Vector3 pos, BlockData[,,] blockData)
+        private void AddPos(Vector3 pos, BlockData[,,] blockData,
+            BlockData[,,] blockData_f, BlockData[,,] blockData_b, BlockData[,,] blockData_r,
+            BlockData[,,] blockData_l)
         {
             if (blockData[Mathf.RoundToInt(pos.x),
                  Mathf.RoundToInt(pos.y), Mathf.RoundToInt(pos.z)] == null)
@@ -118,7 +166,8 @@ namespace VoxelWorld.World.MeshRender
 
             for (int i = 0; i < 6; i++)
             {
-                if (!Checkface(pos + VoxelData.facecheck[i], blockData))
+                if (!Checkface(pos + VoxelData.facecheck[i], blockData,
+                            blockData_f, blockData_b, blockData_r, blockData_l))
                 {
                     var uvInfo = textureBuilder.GetBlockUVInfo(blockID, i);
                     verts.Add(VoxelData.voxelVerts[VoxelData.voxelTris[i, 0]] + pos);

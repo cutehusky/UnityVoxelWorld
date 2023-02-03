@@ -20,6 +20,7 @@ namespace VoxelWorld.JSONDatabases.Converter
             worldData.uid = jobj.Value<string>("uid");
             worldData.name = jobj.Value<string>("name");
             worldData.worldType = (WORLDTYPE)jobj.Value<int>("world_type");
+            worldData.seed = jobj.Value<int>("seed");
             if (worldData.uid == null || worldData.name == null || format != "1.0.0")
                 throw new FormatException("Invalid json format");
             return worldData;
@@ -33,6 +34,7 @@ namespace VoxelWorld.JSONDatabases.Converter
             jobj.Add("name", worldData.name);
             jobj.Add("uid", worldData.uid);
             jobj.Add("world_type", (int)worldData.worldType);
+            jobj.Add("seed", worldData.seed);
             var jsonstr = jobj.ToString();
             writer.WriteRaw(jsonstr);
         }

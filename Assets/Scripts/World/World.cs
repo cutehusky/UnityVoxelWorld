@@ -29,7 +29,16 @@ namespace VoxelWorld.World
         {
             if (chuckData.meshRender == null)
             {
-                chuckData.meshRender = new ChuckMeshRender(chuckData, textureBuilder, transform);
+                chuckData.meshRender = new ChuckMeshRender(chuckData, textureBuilder, transform,
+                databases.chuckDatas?[chuckData.position.x + "_" +
+                (chuckData.position.y + 1)]?.blockData,
+                databases.chuckDatas?[chuckData.position.x + "_" +
+                (chuckData.position.y - 1)]?.blockData,
+                databases.chuckDatas?[(chuckData.position.x + 1) + "_" +
+                chuckData.position.y]?.blockData,
+                databases.chuckDatas?[(chuckData.position.x - 1) + "_" +
+                chuckData.position.y]?.blockData);
+                //chuckData.meshRender = new ChuckMeshRender(chuckData, textureBuilder, transform);
             }
             else
                 chuckData.meshRender.isActive = true;
@@ -37,6 +46,15 @@ namespace VoxelWorld.World
 
         private void UpdateChuck(ChuckData chuckData)
         {
+            /*chuckData.meshRender?.UpdateChuck(chuckData,
+                databases.chuckDatas?[chuckData.position.x + "_" +
+                ( chuckData.position.y+ 1)]?.blockData,
+                databases.chuckDatas?[chuckData.position.x + "_" +
+                (chuckData.position.y - 1)]?.blockData,
+                databases.chuckDatas?[(chuckData.position.x + 1) + "_" +
+                chuckData.position.y]?.blockData,
+                databases.chuckDatas?[(chuckData.position.x - 1) + "_" +
+                chuckData.position.y]?.blockData);*/
             chuckData.meshRender?.UpdateChuck(chuckData);
         }
 
@@ -46,7 +64,7 @@ namespace VoxelWorld.World
                 chuckData.meshRender.isActive = false;
         }
 
-        private void Update()
+        private void FixedUpdate()
         {
             ChucksManager();
         }
@@ -71,8 +89,15 @@ namespace VoxelWorld.World
                     if (!databases.chuckDatas.ContainsKey(pos.x + "_" + pos.y))
                     {
                         if (!databases.LoadChuck(pos, "Worlds/" + worldManager.worldData.uid))
-                            databases.chuckDatas.Add(pos.x + "_" + pos.y,
+                        {
+                            if (worldManager.worldData.worldType == WORLDTYPE.NORMAL)
+                                databases.chuckDatas.Add(pos.x + "_" + pos.y,
+                                MapGenerator.GenerateNoiseChuck(pos, databases.rules,
+                                worldManager.worldData.seed));
+                            else
+                                databases.chuckDatas.Add(pos.x + "_" + pos.y,
                                 MapGenerator.GenerateFlatChuck(pos, databases.rules));
+                        }
                     }
                 }
 

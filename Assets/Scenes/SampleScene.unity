@@ -434,8 +434,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   playerPos: {x: 0, y: 0}
-  DrawDistance: 6
-  LoadDistance: 8
-  UnloadDistance: 10
+  DrawDistance: 20
+  LoadDistance: 25
+  UnloadDistance: 30
   worldManager: {fileID: 822537939}
   databases: {fileID: 2025059940}

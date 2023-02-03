@@ -15,5 +15,6 @@ namespace VoxelWorld.World
         public string name;
         public string uid;
         public WORLDTYPE worldType;
+        public int seed;
     }
 }

@@ -9,11 +9,14 @@ namespace VoxelWorld.World
 
         public static WorldManager Instance { get; private set; }
 
-        public void InitialWorld(string name = "New World")
+        public void InitialWorld(string name = "New World",int seed = 0,
+            WORLDTYPE worldType = WORLDTYPE.NORMAL)
         {
+            if (seed == 0)
+                seed = Random.Range(0, int.MaxValue);
             worldData = new();
             worldData.name = name;
-            worldData.worldType = WORLDTYPE.FLAT;
+            worldData.worldType = worldType;
             FileTools.CreateWorld("Worlds/", ref worldData);
         }
 
