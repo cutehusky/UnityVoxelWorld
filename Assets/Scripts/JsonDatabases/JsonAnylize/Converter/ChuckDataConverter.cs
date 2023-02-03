@@ -26,7 +26,7 @@ namespace VoxelWorld.JSONDatabases.Converter
             if (pos == null || format != "1.0.0")
                 throw new FormatException("Invalid json format");
             chuckData.position = new Vector2(pos.Value<int>(0), pos.Value<int>(1));
-            var blockData = jobj.Value<JObject>("block_data");
+            var blockData = jobj.Value<JArray>("block_data");
             if (blockData == null)
                 throw new FormatException("Invalid json format");
 
@@ -40,19 +40,21 @@ namespace VoxelWorld.JSONDatabases.Converter
                 block.Data = blockData[i].Value<int>("data");
 
                 var arr = blockData[i].Value<JArray>("list");
-                for (int j = 0; j < arr.Count; j++)
-                    block.List.Add(arr.Value<string>(j));
+                if (arr != null)
+                    for (int j = 0; j < arr.Count; j++)
+                        block.List.Add(arr.Value<string>(j));
 
                 var dic = blockData[i].Value<JObject>("tag");
-                foreach (var item in dic)
-                    block.Tag.Add(item.Key, dic[item.Key].Value<string>());
+                if (dic != null)
+                    foreach (var item in dic)
+                        block.Tag.Add(item.Key, dic[item.Key].Value<string>());
 
                 chuckData.blockData[pos.Value<int>(0), pos.Value<int>(1), pos.Value<int>(2)] = block;
             }
             return chuckData;
         }
 
-        public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+        public override void WriteJson(Newtonsoft.Json.JsonWriter writer, object value, JsonSerializer serializer)
         {
             var chuckData = value as ChuckData;
 
@@ -66,22 +68,30 @@ namespace VoxelWorld.JSONDatabases.Converter
                         if (chuckData.blockData[_i, _j, _k] == null)
                             continue;
 
-                        var arr = new JArray();
-                        for (int __i = 0; __i < chuckData.blockData[_i, _j, _k].List.Count; __i++)
-                            arr.Add(chuckData.blockData[_i, _j, _k].List[__i]);
-
-                        var dic = new JObject();
-                        foreach (var data in chuckData.blockData[_i, _j, _k].Tag)
-                            dic.Add(data.Key, data.Value);
-
-                        blockData.Add(new JObject
+                        var _data = new JObject
                         {
                             { "id", chuckData.blockData[_i, _j, _k].ID },
-                            { "data", chuckData.blockData[_i, _j, _k].Data },
-                            { "list", arr },
-                            { "tag", dic },
                             { "pos", new JArray { _i, _j,_k } },
-                        });
+                        };
+                        if (chuckData.blockData[_i, _j, _k].Data != 0)
+                            _data.Add("data", chuckData.blockData[_i, _j, _k].Data);
+
+                        if (chuckData.blockData[_i, _j, _k].List.Count > 0)
+                        {
+                            var arr = new JArray();
+                            for (int __i = 0; __i < chuckData.blockData[_i, _j, _k].List.Count; __i++)
+                                arr.Add(chuckData.blockData[_i, _j, _k].List[__i]);
+                            _data.Add("list", arr);
+                        }
+
+                        if (chuckData.blockData[_i, _j, _k].Tag.Count > 0)
+                        {
+                            var dic = new JObject();
+                            foreach (var data in chuckData.blockData[_i, _j, _k].Tag)
+                                dic.Add(data.Key, data.Value);
+                            _data.Add("tag", dic);
+                        }
+                        blockData.Add(_data);
                     }
                 }
             }

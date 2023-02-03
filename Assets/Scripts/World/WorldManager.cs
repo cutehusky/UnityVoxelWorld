@@ -1,7 +1,5 @@
-using System.Collections.Generic;
 using UnityEngine;
 using VoxelWorld.Utilities;
-using VoxelWorld.World.Chuck;
 
 namespace VoxelWorld.World
 {
@@ -16,12 +14,12 @@ namespace VoxelWorld.World
             worldData = new();
             worldData.name = name;
             worldData.worldType = WORLDTYPE.FLAT;
-            FileTools.CreateWorld(Application.persistentDataPath + "/Worlds", ref worldData);
+            FileTools.CreateWorld("Worlds/", ref worldData);
         }
 
         public void GetWorld(string uid)
         {
-            FileTools.FindWorld(Application.persistentDataPath + "/Worlds", uid, ref worldData);
+            FileTools.FindWorld("Worlds/", uid, ref worldData);
         }
 
         private void Awake()

@@ -15,7 +15,7 @@ namespace VoxelWorld.JSONDatabases.Manager
 
         private void Awake()
         {
-            FileTools.CreateFolder(Application.persistentDataPath + "/ResourcePacks");
+            FileTools.CreateFolder("ResourcePacks");
 
             BlockList = JsonReader.ReadStaticDatasFromFolder<BlockType>("Databases/Blocks");
         }

@@ -3,8 +3,6 @@ using System;
 using System.IO;
 using UnityEngine;
 using VoxelWorld.World;
-using VoxelWorld.World.Chuck;
-using VoxelWorld.World.MeshRender;
 
 namespace VoxelWorld.Utilities
 {
@@ -12,12 +10,14 @@ namespace VoxelWorld.Utilities
     {
         public static void CreateFolder(string path)
         {
+            path = Application.persistentDataPath + "/" + path;
             if (!Directory.Exists(path))
                 Directory.CreateDirectory(path);
         }
 
         public static void CreateWorld(string path, ref WorldData worldData)
         {
+            path = Application.persistentDataPath + "/" + path;
             worldData.uid = Guid.NewGuid().ToString();
             while (true)
             {
@@ -33,8 +33,10 @@ namespace VoxelWorld.Utilities
             }
         }
 
-        public static bool FindWorld(string path, string uid, ref WorldData worldData)
+        public static bool FindWorld(string path, string uid, ref WorldData worldData,
+            bool ignoreError = false)
         {
+            path = Application.persistentDataPath + "/" + path;
             if (!Directory.Exists(path))
                 return false;
 
@@ -58,7 +60,8 @@ namespace VoxelWorld.Utilities
                     }
                     catch (Exception e)
                     {
-                        Debug.Log(e);
+                        if (!ignoreError)
+                            Debug.Log(e);
                     }
                 }
             }

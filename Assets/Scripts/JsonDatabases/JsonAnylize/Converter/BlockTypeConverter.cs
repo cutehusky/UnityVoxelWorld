@@ -36,7 +36,7 @@ namespace VoxelWorld.JSONDatabases.Converter
             };
         }
 
-        public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+        public override void WriteJson(Newtonsoft.Json.JsonWriter writer, object value, JsonSerializer serializer)
         {
             throw new NotImplementedException("Can't writte json");
         }

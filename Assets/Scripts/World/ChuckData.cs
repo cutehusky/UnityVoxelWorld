@@ -14,6 +14,8 @@ namespace VoxelWorld.World.Chuck
         public BlockData[,,] blockData = new BlockData[VoxelData.ChuckWidth,
             VoxelData.ChuckHeight, VoxelData.ChuckWidth];
 
+        public ChuckMeshRender meshRender;
+
         public ChuckData()
         { }
 

@@ -6,10 +6,12 @@ using UnityEngine;
 
 namespace VoxelWorld.JSONDatabases
 {
-    public static class JsonWritter
+    public static class JsonWriter
     {
-        public static bool WritteData<T>(string path, T data, bool _override)
+        public static bool WriteData<T>(string path, T data, bool _override = true, 
+            bool ignoreError = false)
         {
+            path = Application.persistentDataPath + "/" + path;
             if (Directory.Exists(path))
                 return false;
 
@@ -32,7 +34,8 @@ namespace VoxelWorld.JSONDatabases
                 }
                 catch (Exception e)
                 {
-                    Debug.Log(e);
+                    if (!ignoreError)
+                        Debug.Log(e);
                     return false;
                 }
             }
@@ -44,7 +47,8 @@ namespace VoxelWorld.JSONDatabases
             }
             catch (Exception e)
             {
-                Debug.Log(e);
+                if (!ignoreError)
+                    Debug.Log(e);
                 return false;
             }
         }

@@ -1,81 +1,54 @@
 using System.Collections.Generic;
 using UnityEngine;
+using VoxelWorld.JSONDatabases.Manager;
 using VoxelWorld.Texture;
 using VoxelWorld.World.Chuck;
 using VoxelWorld.World.MeshRender;
 using VoxelWorld.World.WorldGenerate;
-using Newtonsoft.Json;
-using VoxelWorld.JSONDatabases.Manager;
 
 namespace VoxelWorld.World
 {
     [Utilities.ExecutionOrder.ExecuteAfter(typeof(BlockTextureBuilder))]
     public class World : MonoBehaviour
     {
-        private Dictionary<string, ChuckMeshRender> chuckMeshRenders;
         public Vector2 playerPos;
         public int DrawDistance;
-        public int RemoveDistance;
         public int LoadDistance;
+        public int UnloadDistance;
         public WorldManager worldManager;
         private BlockTextureBuilder textureBuilder;
-        private RuntimeDatabasesManager databases;
-        private MapGenerator mapGenerator;
+        public RuntimeDatabasesManager databases;
 
         private void Awake()
         {
             textureBuilder = GetComponent<BlockTextureBuilder>();
-            mapGenerator = GetComponent<MapGenerator>();
             databases.LoadWorldGenerateRules(worldManager.worldData.worldType.ToString());
         }
 
         private void RenderChuck(ChuckData chuckData)
         {
-            if (chuckMeshRenders.ContainsKey(chuckData.position.x + "_" + chuckData.position.y))
-                chuckMeshRenders[chuckData.position.x + "_" + chuckData.position.y].isActive = true;
+            if (chuckData.meshRender == null)
+            {
+                chuckData.meshRender = new ChuckMeshRender(chuckData, textureBuilder, transform);
+            }
             else
-                chuckMeshRenders.Add(chuckData.position.x + "_" + chuckData.position.y,
-                    new ChuckMeshRender(chuckData, textureBuilder, transform));
+                chuckData.meshRender.isActive = true;
         }
 
         private void UpdateChuck(ChuckData chuckData)
         {
-            if (chuckMeshRenders.ContainsKey(chuckData.position.x + "_" + chuckData.position.y))
-                chuckMeshRenders[chuckData.position.x + "_" + chuckData.position.y].UpdateChuck(chuckData);
-            else
-                chuckMeshRenders.Add(chuckData.position.x + "_" + chuckData.position.y,
-                    new ChuckMeshRender(chuckData, textureBuilder, transform));
+            chuckData.meshRender?.UpdateChuck(chuckData);
         }
 
-        private void UnloadChuck(Vector2 pos)
+        private void UnrenderChuck(ChuckData chuckData)
         {
-            if (chuckMeshRenders.ContainsKey(pos.x + "_" + pos.y))
-                chuckMeshRenders[pos.x + "_" + pos.y].isActive = false;
+            if (chuckData.meshRender != null)
+                chuckData.meshRender.isActive = false;
         }
 
-        private void ClearChuck(Vector2 pos)
+        private void Update()
         {
-            if (chuckMeshRenders.ContainsKey(pos.x + "_" + pos.y))
-            {
-                chuckMeshRenders.Remove(pos.x + "_" + pos.y);
-            }
-        }
-
-        private void ChucksManager()
-        {
-            for (int i = -LoadDistance; i < LoadDistance;i++)
-            {
-                for (int j = -LoadDistance; j < LoadDistance; j++)
-                {
-                    var pos = new Vector2(i, j);
-                    if (databases.chuckDatas.FindIndex(chuck => chuck.position ==
-                    (GetPlayerChuck(playerPos) + pos)) == -1)
-                    {
-                        if (!databases.LoadChuck(pos))
-                            mapGenerator.GenerateChuck(pos);
-                    }
-                }
-            }
+            ChucksManager();
         }
 
         private Vector2 GetPlayerChuck(Vector2 pos)
@@ -83,22 +56,44 @@ namespace VoxelWorld.World
             return new Vector2((int)pos.x / VoxelData.ChuckWidth, (int)pos.y / VoxelData.ChuckWidth);
         }
 
-        private void RenderChucks()
+        private void ChucksManager()
         {
-            var list = databases.chuckDatas.FindAll(chuck => (chuck.position -
-                GetPlayerChuck(playerPos)).sqrMagnitude <= DrawDistance * DrawDistance);
-            for (int i = 0; i < list.Count; i++)
-                RenderChuck(list[i]);
+            var playerChuck = GetPlayerChuck(playerPos);
+            List<string> unloadList = new();
 
-            list = databases.chuckDatas.FindAll(chuck => (chuck.position -
-                GetPlayerChuck(playerPos)).sqrMagnitude > RemoveDistance * RemoveDistance);
-            for (int i = 0; i < list.Count; i++)
-                ClearChuck(list[i].position);
+            //load chuck
+            for (int i = -LoadDistance; i < LoadDistance; i++)
+                for (int j = -LoadDistance; j < LoadDistance; j++)
+                {
+                    if (i * i + j * j > LoadDistance * LoadDistance)
+                        continue;
+                    var pos = playerChuck + new Vector2(i, j);
+                    if (!databases.chuckDatas.ContainsKey(pos.x + "_" + pos.y))
+                    {
+                        if (!databases.LoadChuck(pos, "Worlds/" + worldManager.worldData.uid))
+                            databases.chuckDatas.Add(pos.x + "_" + pos.y,
+                                MapGenerator.GenerateFlatChuck(pos, databases.rules));
+                    }
+                }
 
-            list = databases.chuckDatas.FindAll(chuck => (chuck.position -
-                GetPlayerChuck(playerPos)).sqrMagnitude > DrawDistance * DrawDistance);
-            for (int i = 0; i < list.Count; i++)
-                UnloadChuck(list[i].position);
+            //render chuck
+            foreach (var chuck in databases.chuckDatas)
+            {
+                if ((chuck.Value.position - playerChuck).sqrMagnitude > UnloadDistance * UnloadDistance)
+                    unloadList.Add(chuck.Key);
+                else if ((chuck.Value.position - playerChuck).sqrMagnitude < DrawDistance * DrawDistance)
+                    RenderChuck(databases.chuckDatas[chuck.Key]);
+                else
+                    UnrenderChuck(databases.chuckDatas[chuck.Key]);
+            }
+
+            //unload chuck
+            for (int i = 0; i < unloadList.Count; i++)
+            {
+                databases.chuckDatas[unloadList[i]].meshRender?.Destroy();
+                databases.SaveChuck(unloadList[i], "Worlds/" + worldManager.worldData.uid);
+                databases.chuckDatas.Remove(unloadList[i]);
+            }
         }
     }
 }

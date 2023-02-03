@@ -8,7 +8,7 @@ namespace VoxelWorld.World.MeshRender
 {
     public class ChuckMeshRender
     {
-        private GameObject chuck;
+        public GameObject chuck;
         private MeshRenderer meshRenderer;
         private MeshFilter meshFilter;
         private BlockTextureBuilder textureBuilder;
@@ -34,11 +34,6 @@ namespace VoxelWorld.World.MeshRender
             ResetMeshData();
         }
 
-        ~ChuckMeshRender()
-        {
-            Object.Destroy(chuck);
-        }
-
         public Vector2 position { get => new Vector2(chuck.transform.position.x, chuck.transform.position.z); }
 
         public bool isActive { get => chuck.activeSelf; set => chuck.SetActive(value); }
@@ -60,11 +55,16 @@ namespace VoxelWorld.World.MeshRender
             ResetMeshData();
         }
 
+        public void Destroy()
+        {
+            Object.Destroy(chuck);
+        }
+
         private void AddMeshData(BlockData[,,] blockData)
         {
             for (int i = 0; i < VoxelData.ChuckWidth; i++)
-                for (int j = 0; j < VoxelData.ChuckWidth; i++)
-                    for (int k = 0; k < VoxelData.ChuckHeight; i++)
+                for (int j = 0; j < VoxelData.ChuckWidth; j++)
+                    for (int k = 0; k < VoxelData.ChuckHeight; k++)
                         AddPos(new Vector3(i, k, j), blockData);
         }
 
@@ -95,16 +95,22 @@ namespace VoxelWorld.World.MeshRender
                 y = Mathf.RoundToInt(pos.y),
                 z = Mathf.RoundToInt(pos.z);
 
+            if (y < 0)
+                return true;
+
             if (x < 0 || x > VoxelData.ChuckWidth - 1
                 || z < 0 || z > VoxelData.ChuckWidth - 1
-                || y < 0 || y > VoxelData.ChuckHeight - 1)
+                || y > VoxelData.ChuckHeight - 1)
                 return false;
 
-            return blockData[x, y, z].ID != 0;
+            return blockData[x, y, z] != null;
         }
 
         private void AddPos(Vector3 pos, BlockData[,,] blockData)
         {
+            if (blockData[Mathf.RoundToInt(pos.x),
+                 Mathf.RoundToInt(pos.y), Mathf.RoundToInt(pos.z)] == null)
+                return;
             int blockID = blockData[Mathf.RoundToInt(pos.x),
                  Mathf.RoundToInt(pos.y), Mathf.RoundToInt(pos.z)].ID;
             if (blockID == 0)

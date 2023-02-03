@@ -358,7 +358,6 @@ GameObject:
   - component: {fileID: 2025059937}
   - component: {fileID: 2025059940}
   - component: {fileID: 2025059941}
-  - component: {fileID: 2025059942}
   m_Layer: 0
   m_Name: World
   m_TagString: Untagged
@@ -435,19 +434,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   playerPos: {x: 0, y: 0}
-  DrawDistance: 0
-  RemoveDistance: 0
-  LoadDistance: 0
+  DrawDistance: 6
+  LoadDistance: 8
+  UnloadDistance: 10
   worldManager: {fileID: 822537939}
---- !u!114 &2025059942
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2025059936}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6a1a321d91a2664459d7831f88a3a2eb, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  databases: {fileID: 2025059940}

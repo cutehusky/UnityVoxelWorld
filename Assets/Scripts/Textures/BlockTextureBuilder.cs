@@ -146,14 +146,14 @@ namespace VoxelWorld.Texture
 
         private void ResetValue()
         {
-            textureIndex = new();
-            i = new();
-            j = new();
+            textureIndex = null;
+            i = null;
+            j = null;
             foreach (var material in materialTemplates)
             {
                 Resources.UnloadAsset(materialTemplates[material.Key]);
             }
-            materialTemplates = new();
+            materialTemplates = null;
         }
 
         private void InitialValue()
@@ -165,9 +165,9 @@ namespace VoxelWorld.Texture
             i = new();
             j = new();
             materialTemplates = new()
-        {
-            { "Default", Resources.Load<Material>("Materials/Blocks/Default") }
-        };
+            {
+                { "Default", Resources.Load<Material>("Materials/Blocks/Default") }
+            };
         }
 
         private void Awake()

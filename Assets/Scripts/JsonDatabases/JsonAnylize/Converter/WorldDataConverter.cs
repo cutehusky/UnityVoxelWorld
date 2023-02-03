@@ -19,20 +19,20 @@ namespace VoxelWorld.JSONDatabases.Converter
             var format = jobj.Value<string>("format_version");
             worldData.uid = jobj.Value<string>("uid");
             worldData.name = jobj.Value<string>("name");
-            worldData.worldType = (WORLDTYPE) jobj.Value<int>("world_type");
+            worldData.worldType = (WORLDTYPE)jobj.Value<int>("world_type");
             if (worldData.uid == null || worldData.name == null || format != "1.0.0")
                 throw new FormatException("Invalid json format");
             return worldData;
         }
 
-        public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+        public override void WriteJson(Newtonsoft.Json.JsonWriter writer, object value, JsonSerializer serializer)
         {
             var jobj = new JObject();
             var worldData = value as WorldData;
             jobj.Add("format_version", "1.0.0");
             jobj.Add("name", worldData.name);
             jobj.Add("uid", worldData.uid);
-            jobj.Add("world_type",(int) worldData.worldType);
+            jobj.Add("world_type", (int)worldData.worldType);
             var jsonstr = jobj.ToString();
             writer.WriteRaw(jsonstr);
         }

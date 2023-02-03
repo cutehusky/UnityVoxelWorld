@@ -11,34 +11,35 @@ namespace VoxelWorld.JSONDatabases
         public static List<T> ReadStaticDatasFromFolder<T>(string path)
         {
             TextAsset[] raw = Resources.LoadAll<TextAsset>(path);
-            return ReadDatasFromText<T>(raw, true);
-        }
-
-        public static bool ReadDataFromPath<T>(string path, ref T output)
-        {
-            string raw = File.ReadAllText(Application.persistentDataPath + "/" + path);
             if (raw != null)
-                return ReadDataFromText<T>(raw, ref output);
-            return false;
+                return ReadDatasFromText<T>(raw, true);
+            return null;
         }
 
-        public static bool ReadDataFromText<T>(string raw, ref T output)
+        public static bool ReadDataFromPath<T>(string path, ref T output, bool ignoreError = false)
         {
             try
             {
+                string raw = File.ReadAllText(Application.persistentDataPath + "/" + path);
+                if (raw == null)
+                    return false;
                 var data = JsonConvert.DeserializeObject<T>(raw);
                 if (data != null)
+                {
                     output = data;
-                return true;
+                    return true;
+                }
+                return false;
             }
             catch (Exception e)
             {
-                Debug.Log(e);
+                if (!ignoreError) 
+                    Debug.Log(e);
                 return false;
             }
         }
 
-        public static List<T> ReadDatasFromText<T>(string[] raw)
+        public static List<T> ReadDatasFromText<T>(string[] raw, bool ignoreError = false)
         {
             List<T> result = new();
             foreach (var file in raw)
@@ -51,13 +52,14 @@ namespace VoxelWorld.JSONDatabases
                 }
                 catch (Exception e)
                 {
-                    Debug.Log(e);
+                    if (!ignoreError)
+                        Debug.Log(e);
                 }
             }
             return result;
         }
 
-        public static List<T> ReadDatasFromText<T>(TextAsset[] raw, bool unloadAsset = false)
+        public static List<T> ReadDatasFromText<T>(TextAsset[] raw, bool unloadAsset = false, bool ignoreError = false)
         {
             List<T> result = new();
             foreach (var file in raw)
@@ -72,7 +74,8 @@ namespace VoxelWorld.JSONDatabases
                 }
                 catch (Exception e)
                 {
-                    Debug.Log(e);
+                    if (!ignoreError)
+                        Debug.Log(e);
                 }
             }
             return result;
